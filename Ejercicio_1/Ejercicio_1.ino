@@ -24,8 +24,8 @@ enum Estados {
   ESPERA_2
 };
 Estados estado = PANTALLA_1;
-int hora = 10;
-int minuto = 20;
+int h = 10;
+int m = 20;
 int segundo = 0;
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
@@ -38,6 +38,7 @@ void setup() {
   Serial.begin(9600);
   Serial.println(F("OLED test"));
   u8g2.begin();
+  u8g2.clearBuffer();
   // Initialize device.
   dht.begin();
   Serial.println(F("DHTxx Unified Sensor Example"));
@@ -52,7 +53,7 @@ void loop() {
   dht.temperature().getEvent(&event);
   switch (estado) {
     case PANTALLA_1:
-      imprimirHora(hora,minuto,event.temperature);
+      imprimirHora(h,m,event.temperature);
       if (digitalRead(BOTON_1) == LOW && digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_1;
         Serial.println("Espera 1");
@@ -89,13 +90,17 @@ void imprimirHora(int hora, int minuto, int temperatura) {
   char smin[2];
   char stemp[2];
 
-  sprintf(shora, "%d", hora);
-  sprintf(smin, "%d", minuto);
-  sprintf(stemp, "%d", temperatura);
   u8g2.setFont(u8g2_font_6x10_tr);
   u8g2.drawStr(10, 30, "Hora: ");
-  u8g2.drawStr(16,30,shora);
-  u8g2.drawStr(18, 30, ":");
-  u8g2.drawStr(20, 30, smin);
+  
+  sprintf(shora, "%d", hora);
+  u8g2.drawStr(29,30,shora);
+
+  u8g2.drawStr(20, 30, ":");
+  
+  sprintf(smin, "%d", minuto);
+  u8g2.drawStr(90, 30, smin);
+  //sprintf(stemp, "%d", temperatura);
+  
   u8g2.sendBuffer();
 }
