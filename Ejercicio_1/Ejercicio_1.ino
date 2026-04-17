@@ -53,7 +53,7 @@ void loop() {
   dht.temperature().getEvent(&event);
   switch (estado) {
     case PANTALLA_1:
-      imprimirHora(h,m,event.temperature);
+      imprimirHora(h, m, event.temperature);
       if (digitalRead(BOTON_1) == LOW && digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_1;
         Serial.println("Espera 1");
@@ -63,24 +63,63 @@ void loop() {
       if (digitalRead(BOTON_1) == HIGH && digitalRead(BOTON_2) == HIGH) {
         estado = PANTALLA_2;
         Serial.println("Pantalla 2");
-      } 
+      }
       break;
 
     case PANTALLA_2:
+      imprimirHora(h, m, event.temperature);
+      if (digitalRead(BOTON_1) == LOW) {
+        estado = SUMA_HORA;
+        Serial.println("Suma Hora");
+      } else if (digitalRead(BOTON_2) == LOW) {
+        estado = SUMA_MINUTO;
+        Serial.println("Suma Minuto");
+      }
       break;
 
     case SUMA_HORA:
+      if (digitalRead(BOTON_2) == LOW) {
+        estado = ESPERA_2;
+        Serial.println("Espera 2");
+      }
+      if (digitalRead(BOTON_1) == HIGH) {
+        estado = PANTALLA_2;
+        Serial.println("Pantalla 2");
+      }
       break;
 
     case SUMA_MINUTO:
+      if (digitalRead(BOTON_1) == LOW) {
+        estado = ESPERA_2;
+        Serial.println("Espera 2");
+      }
+      if (digitalRead(BOTON_2) == HIGH) {
+        m++;
+        estado = PANTALLA_2;
+        Serial.println("Pantalla 2");
+      }
       break;
 
     case ESPERA_2:
+      if (digitalRead(BOTON_1) == HIGH && digitalRead(BOTON_2) == HIGH) {
+        estado = PANTALLA_1;
+        Serial.println("Pantalla 1");
+      }
       break;
   }
 
-  if(millis() % 1000 == 0){
-    
+  if (millis() % 1000 == 0) {
+    segundo++;
+  }
+  if (segundo % 60 == 0) {
+    segundo = 0;
+    m++;
+  }
+  if (m % 60 == 0) {
+    h++;
+  }
+  if (h % 24 == 0) {
+    h = 0;
   }
 }
 
@@ -92,15 +131,15 @@ void imprimirHora(int hora, int minuto, int temperatura) {
 
   u8g2.setFont(u8g2_font_6x10_tr);
   u8g2.drawStr(10, 30, "Hora: ");
-  
-  sprintf(shora, "%d", hora);
-  u8g2.drawStr(46,30,shora);
 
-  u8g2.drawStr(52, 30, ":");
-  
+  sprintf(shora, "%d", hora);
+  u8g2.drawStr(46, 30, shora);
+
+  u8g2.drawStr(60, 30, ":");
+
   sprintf(smin, "%d", minuto);
-  u8g2.drawStr(72, 30, smin);
+  u8g2.drawStr(66, 30, smin);
   //sprintf(stemp, "%d", temperatura);
-  
+
   u8g2.sendBuffer();
 }
