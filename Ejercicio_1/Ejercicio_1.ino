@@ -94,12 +94,12 @@ void imprimirHora(int hora, int minuto, int temperatura) {
   u8g2.drawStr(10, 30, "Hora: ");
   
   sprintf(shora, "%d", hora);
-  u8g2.drawStr(29,30,shora);
+  u8g2.drawStr(46,30,shora);
 
-  u8g2.drawStr(20, 30, ":");
+  u8g2.drawStr(52, 30, ":");
   
   sprintf(smin, "%d", minuto);
-  u8g2.drawStr(90, 30, smin);
+  u8g2.drawStr(72, 30, smin);
   //sprintf(stemp, "%d", temperatura);
   
   u8g2.sendBuffer();
