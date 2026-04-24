@@ -69,10 +69,10 @@ void setup() {
 void loop() {
   sensors_event_t event;
   dht.temperature().getEvent(&event);
-  int hora = rtc.getHour("%H");
+  int h = rtc.getHour("%H") + gmt;
   switch (estado) {
     case PANTALLA_1:
-      imprimirHora(hora, event.temperature);
+      imprimirHora(h, event.temperature);
       if (digitalRead(BOTON_1) == LOW && digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_1;
         Serial.println("Espera 1");
@@ -86,7 +86,7 @@ void loop() {
       break;
 
     case PANTALLA_2:
-      imprimirHora(hora, event.temperature);
+      imprimirHora(h, event.temperature);
       if (digitalRead(BOTON_1) == LOW) {
         estado = SUMA_GMT;
         Serial.println("Suma Hora");
@@ -104,7 +104,7 @@ void loop() {
       if (digitalRead(BOTON_1) == HIGH) {
         estado = PANTALLA_2;
         gmt++;
-        .gmt = constrain(gmt, -12, 12);
+        gmt = constrain(gmt, -12, 12);
         Serial.println("Pantalla 2");
       }
       break;
@@ -129,34 +129,30 @@ void loop() {
       }
       break;
   }
+}
 
+void imprimirHora(int hora, int temperatura) {
+  u8g2.clearBuffer();  // clear the internal memory
+  char shora[5];
+  char stemp[2];
+  char sgmt[3];
 
-  void imprimirHora(int hora, int temperatura) {
-    u8g2.clearBuffer();  // clear the internal memory
-    char shora[5];
-    char stemp[2];
-    char sgmt[3];
+  u8g2.setFont(u8g2_font_6x10_tr);
 
-    u8g2.setFont(u8g2_font_6x10_tr);
+  if (estado == PANTALLA_1) {
+    u8g2.drawStr(10, 30, "Hora: ");
+    sprintf(shora, "%s", String(hora) + rtc.getTime(":%M:%S"));
+    u8g2.drawStr(46, 30, shora);
 
-    if (estado == PANTALLA_1) {
-      u8g2.drawStr(10, 30, "Hora: ");
-      if (hora < 10) {
-        sprintf(shora, "0%d", hora + rtc.getTime("%M,%S"));
-      } else {
-        sprintf(shora, "%d", hora);
-      }
-      u8g2.drawStr(46, 30, shora);
-
-      sprintf(stemp, "%d", temperatura);
-      u8g2.drawStr(10, 50, "Temperatura:");
-      u8g2.drawStr(85, 50, stemp);
-      u8g2.drawStr(100, 50, "°C");
-    } else if (estado == PANTALLA_2){
-      sprintf(sgmt,"%d",gmt);
-      u8g2.drawStr(10, 30, "GMT: ");
-      u8g2.drawStr(30,30,sgmt);
-    }
-
-    u8g2.sendBuffer();
+    sprintf(stemp, "%d", temperatura);
+    u8g2.drawStr(10, 50, "Temperatura:");
+    u8g2.drawStr(85, 50, stemp);
+    u8g2.drawStr(100, 50, "°C");
+  } else if (estado == PANTALLA_2) {
+    sprintf(sgmt, "%d", gmt);
+    u8g2.drawStr(10, 30, "GMT: ");
+    u8g2.drawStr(40, 30, sgmt);
   }
+
+  u8g2.sendBuffer();
+}
