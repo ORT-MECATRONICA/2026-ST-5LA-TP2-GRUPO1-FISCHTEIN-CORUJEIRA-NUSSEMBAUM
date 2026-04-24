@@ -31,7 +31,9 @@ void setup() {
 void loop() {
   // 4. Retrieve and print time directly from the RTC
   // This continues to work even if Wi-Fi is disconnected
-  int hora = rtc.getHour() + gmt;
-  Serial.println(rtc.getTime("%A, %B %d %Y %H:%M:%S")); 
+  int hora = rtc.getHour("%H") + gmt;
+  Serial.print("Hora: ");
+  Serial.print(hora);
+  Serial.println(rtc.getTime(":%M")); 
   delay(1000);
 }
