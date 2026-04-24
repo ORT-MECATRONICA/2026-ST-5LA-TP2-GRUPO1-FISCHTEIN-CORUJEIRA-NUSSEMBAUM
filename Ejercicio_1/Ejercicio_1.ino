@@ -1,4 +1,4 @@
-//Grupo 3: Sol Corujeira, Benjamín Fischtein y Lara Nussembaum
+//Grupo 1: Sol Corujeira, Benjamín Fischtein y Lara Nussembaum
 
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
@@ -6,8 +6,7 @@
 #include <U8g2lib.h>
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
-void imprimirHora(int hora, int minuto);
-void imprimirTemp(int temperatura);
+void imprimirHora(int hora, int minuto, int temperatura);
 
 #define DHTPIN 23  // Pin del sensor de temperatura
 #define DHTTYPE DHT11
