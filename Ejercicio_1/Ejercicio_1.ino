@@ -84,6 +84,7 @@ void loop() {
       }
       if (digitalRead(BOTON_1) == HIGH) {
         estado = PANTALLA_2;
+        h++;
         Serial.println("Pantalla 2");
       }
       break;
@@ -111,14 +112,15 @@ void loop() {
   if (millis() % 1000 == 0) {
     segundo++;
   }
-  if (segundo % 60 == 0) {
+  if (segundo >= 60) {
     segundo = 0;
     m++;
   }
-  if (m % 60 == 0) {
+  if (m >= 60) {
+    m = 0;
     h++;
   }
-  if (h % 24 == 0) {
+  if (h >= 24) {
     h = 0;
   }
 }
@@ -130,16 +132,30 @@ void imprimirHora(int hora, int minuto, int temperatura) {
   char stemp[2];
 
   u8g2.setFont(u8g2_font_6x10_tr);
-  u8g2.drawStr(10, 30, "Hora: ");
 
-  sprintf(shora, "%d", hora);
+  if (hora < 10) {
+    sprintf(shora, "0%d", hora);
+  } else {
+    sprintf(shora, "%d", hora);
+  }
   u8g2.drawStr(46, 30, shora);
 
   u8g2.drawStr(60, 30, ":");
 
-  sprintf(smin, "%d", minuto);
+  if (minuto < 10) {
+    sprintf(smin, "0%d", minuto);
+  } else {
+    sprintf(smin, "%d", minuto);
+  }
   u8g2.drawStr(66, 30, smin);
-  //sprintf(stemp, "%d", temperatura);
+
+  if (estado != PANTALLA_2) {
+    u8g2.drawStr(10, 30, "Hora: ");
+    sprintf(stemp, "%d", temperatura);
+    u8g2.drawStr(10, 50, "Temperatura:");
+    u8g2.drawStr(85, 50, stemp);
+    u8g2.drawStr(100, 50, "°C");
+  }
 
   u8g2.sendBuffer();
 }
