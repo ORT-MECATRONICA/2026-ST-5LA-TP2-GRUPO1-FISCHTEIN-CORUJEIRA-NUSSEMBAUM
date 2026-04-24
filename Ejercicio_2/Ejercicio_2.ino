@@ -9,10 +9,10 @@
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 
 ESP32Time rtc;
-const char* ssid     = "MECA-IoT";
+const char* ssid = "MECA-IoT";
 const char* password = "IoT$2026";
 
-void imprimirHora(int hora, int minuto, int temperatura);
+void imprimirHora(int hora, int temperatura);
 
 #define DHTPIN 23  // Pin del sensor de temperatura
 #define DHTTYPE DHT11
@@ -24,15 +24,12 @@ enum Estados {
   PANTALLA_1,
   ESPERA_1,
   PANTALLA_2,
-  SUMA_HORA,
-  SUMA_MINUTO,
+  SUMA_GMT,
+  RESTA_GMT,
   ESPERA_2
 };
 Estados estado = PANTALLA_1;
-int h = 10;
-int m = 20;
-int segundo = 0;
-
+int gmt = 0;
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
 void setup() {
@@ -44,6 +41,13 @@ void setup() {
   }
   Serial.println("\nWiFi Connected");
 
+  configTime(0, 0, "pool.ntp.org");
+
+  // 3. Wait for time to sync and set it to the RTC
+  struct tm timeinfo;
+  if (getLocalTime(&timeinfo)) {
+    rtc.setTimeStruct(timeinfo);  // Set the internal RTC with the NTP time
+  }
 
   pinMode(BOTON_1, INPUT_PULLUP);
   pinMode(BOTON_2, INPUT_PULLUP);
@@ -65,9 +69,10 @@ void setup() {
 void loop() {
   sensors_event_t event;
   dht.temperature().getEvent(&event);
+  int hora = rtc.getHour("%H");
   switch (estado) {
     case PANTALLA_1:
-      imprimirHora(h, m, event.temperature);
+      imprimirHora(hora, event.temperature);
       if (digitalRead(BOTON_1) == LOW && digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_1;
         Serial.println("Espera 1");
@@ -81,35 +86,37 @@ void loop() {
       break;
 
     case PANTALLA_2:
-      imprimirHora(h, m, event.temperature);
+      imprimirHora(hora, event.temperature);
       if (digitalRead(BOTON_1) == LOW) {
-        estado = SUMA_HORA;
+        estado = SUMA_GMT;
         Serial.println("Suma Hora");
       } else if (digitalRead(BOTON_2) == LOW) {
-        estado = SUMA_MINUTO;
+        estado = RESTA_GMT;
         Serial.println("Suma Minuto");
       }
       break;
 
-    case SUMA_HORA:
+    case SUMA_GMT:
       if (digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_2;
         Serial.println("Espera 2");
       }
       if (digitalRead(BOTON_1) == HIGH) {
         estado = PANTALLA_2;
-        h++;
+        gmt++;
+        .gmt = constrain(gmt, -12, 12);
         Serial.println("Pantalla 2");
       }
       break;
 
-    case SUMA_MINUTO:
+    case RESTA_GMT:
       if (digitalRead(BOTON_1) == LOW) {
         estado = ESPERA_2;
         Serial.println("Espera 2");
       }
       if (digitalRead(BOTON_2) == HIGH) {
-        m++;
+        gmt--;
+        gmt = constrain(gmt, -12, 12);
         estado = PANTALLA_2;
         Serial.println("Pantalla 2");
       }
@@ -123,53 +130,33 @@ void loop() {
       break;
   }
 
-  if (millis() % 1000 == 0) {
-    segundo++;
-  }
-  if (segundo >= 60) {
-    segundo = 0;
-    m++;
-  }
-  if (m >= 60) {
-    m = 0;
-    h++;
-  }
-  if (h >= 24) {
-    h = 0;
-  }
-}
 
-void imprimirHora(int hora, int minuto, int temperatura) {
-  u8g2.clearBuffer();  // clear the internal memory
-  char shora[2];
-  char smin[2];
-  char stemp[2];
+  void imprimirHora(int hora, int temperatura) {
+    u8g2.clearBuffer();  // clear the internal memory
+    char shora[5];
+    char stemp[2];
+    char sgmt[3];
 
-  u8g2.setFont(u8g2_font_6x10_tr);
+    u8g2.setFont(u8g2_font_6x10_tr);
 
-  if (hora < 10) {
-    sprintf(shora, "0%d", hora);
-  } else {
-    sprintf(shora, "%d", hora);
+    if (estado == PANTALLA_1) {
+      u8g2.drawStr(10, 30, "Hora: ");
+      if (hora < 10) {
+        sprintf(shora, "0%d", hora + rtc.getTime("%M,%S"));
+      } else {
+        sprintf(shora, "%d", hora);
+      }
+      u8g2.drawStr(46, 30, shora);
+
+      sprintf(stemp, "%d", temperatura);
+      u8g2.drawStr(10, 50, "Temperatura:");
+      u8g2.drawStr(85, 50, stemp);
+      u8g2.drawStr(100, 50, "°C");
+    } else if (estado == PANTALLA_2){
+      sprintf(sgmt,"%d",gmt);
+      u8g2.drawStr(10, 30, "GMT: ");
+      u8g2.drawStr(30,30,sgmt);
+    }
+
+    u8g2.sendBuffer();
   }
-  u8g2.drawStr(46, 30, shora);
-
-  u8g2.drawStr(60, 30, ":");
-
-  if (minuto < 10) {
-    sprintf(smin, "0%d", minuto);
-  } else {
-    sprintf(smin, "%d", minuto);
-  }
-  u8g2.drawStr(66, 30, smin);
-
-  if (estado != PANTALLA_2) {
-    u8g2.drawStr(10, 30, "Hora: ");
-    sprintf(stemp, "%d", temperatura);
-    u8g2.drawStr(10, 50, "Temperatura:");
-    u8g2.drawStr(85, 50, stemp);
-    u8g2.drawStr(100, 50, "°C");
-  }
-
-  u8g2.sendBuffer();
-}
