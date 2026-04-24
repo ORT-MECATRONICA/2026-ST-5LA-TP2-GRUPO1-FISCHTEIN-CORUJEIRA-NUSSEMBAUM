@@ -1,4 +1,4 @@
-//Grupo 1: Sol Corujeira, Benjamín Fischtein y Lara Nussembaum
+//Grupo 3: Sol Corujeira, Benjamín Fischtein y Lara Nussembaum
 
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
