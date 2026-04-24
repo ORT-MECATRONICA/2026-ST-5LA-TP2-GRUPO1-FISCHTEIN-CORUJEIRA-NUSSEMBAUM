@@ -1,10 +1,16 @@
 //Grupo 1: Sol Corujeira, Benjamín Fischtein y Lara Nussembaum
 
+#include <WiFi.h>
+#include <ESP32Time.h>
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
 #include <U8g2lib.h>
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+
+ESP32Time rtc;
+const char* ssid     = "MECA-IoT";
+const char* password = "IoT$2026";
 
 void imprimirHora(int hora, int minuto, int temperatura);
 
@@ -30,6 +36,15 @@ int segundo = 0;
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
 void setup() {
+
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi Connected");
+
+
   pinMode(BOTON_1, INPUT_PULLUP);
   pinMode(BOTON_2, INPUT_PULLUP);
   pinMode(LED, OUTPUT);
