@@ -93,7 +93,7 @@ void loop() {
         Serial.println("Resta gmt");
       }
       break;
-Bbbbbbbbbbbbbbbb
+
     case SUMA_GMT:
       if (digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_2;
