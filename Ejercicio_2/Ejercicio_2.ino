@@ -86,13 +86,12 @@ void loop() {
       break;
 
     case PANTALLA_2:
-      imprimirHora(h, event.temperature);
       if (digitalRead(BOTON_1) == LOW) {
         estado = SUMA_GMT;
-        Serial.println("Suma Hora");
+        Serial.println("Suma gmt");
       } else if (digitalRead(BOTON_2) == LOW) {
         estado = RESTA_GMT;
-        Serial.println("Suma Minuto");
+        Serial.println("Resta gmt");
       }
       break;
 
@@ -133,7 +132,7 @@ void loop() {
 
 void imprimirHora(int hora, int temperatura) {
   u8g2.clearBuffer();  // clear the internal memory
-  char shora[5];
+  char shora[8];
   char stemp[2];
   char sgmt[3];
 
