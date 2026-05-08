@@ -33,7 +33,7 @@ int gmt = 0;
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
 void setup() {
-
+  Serial.begin(9600);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -53,7 +53,6 @@ void setup() {
   pinMode(BOTON_2, INPUT_PULLUP);
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);
-  Serial.begin(9600);
   Serial.println(F("OLED test"));
   u8g2.begin();
   u8g2.clearBuffer();
@@ -69,10 +68,10 @@ void setup() {
 void loop() {
   sensors_event_t event;
   dht.temperature().getEvent(&event);
-  int h = rtc.getHour("%H") + gmt;
+  int h = (rtc.getHour("%H") + gmt) % 24;
+  imprimirHora(h, event.temperature);
   switch (estado) {
     case PANTALLA_1:
-      imprimirHora(h, event.temperature);
       if (digitalRead(BOTON_1) == LOW && digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_1;
         Serial.println("Espera 1");
@@ -94,7 +93,7 @@ void loop() {
         Serial.println("Resta gmt");
       }
       break;
-
+Bbbbbbbbbbbbbbbb
     case SUMA_GMT:
       if (digitalRead(BOTON_2) == LOW) {
         estado = ESPERA_2;
@@ -131,14 +130,14 @@ void loop() {
 }
 
 void imprimirHora(int hora, int temperatura) {
-  u8g2.clearBuffer();  // clear the internal memory
-  char shora[8];
-  char stemp[2];
-  char sgmt[3];
+  char shora[9];
+  char stemp[6];
+  char sgmt[4];
 
   u8g2.setFont(u8g2_font_6x10_tr);
 
   if (estado == PANTALLA_1) {
+    u8g2.clearBuffer();
     u8g2.drawStr(10, 30, "Hora: ");
     sprintf(shora, "%s", String(hora) + rtc.getTime(":%M:%S"));
     u8g2.drawStr(46, 30, shora);
@@ -147,7 +146,8 @@ void imprimirHora(int hora, int temperatura) {
     u8g2.drawStr(10, 50, "Temperatura:");
     u8g2.drawStr(85, 50, stemp);
     u8g2.drawStr(100, 50, "°C");
-  } else if (estado == PANTALLA_2) {
+  } else if (estado != ESPERA_1) {
+    u8g2.clearBuffer();
     sprintf(sgmt, "%d", gmt);
     u8g2.drawStr(10, 30, "GMT: ");
     u8g2.drawStr(40, 30, sgmt);
