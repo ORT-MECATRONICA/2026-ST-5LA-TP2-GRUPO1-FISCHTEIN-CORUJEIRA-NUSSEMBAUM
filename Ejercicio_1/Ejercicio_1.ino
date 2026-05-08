@@ -29,6 +29,13 @@ int segundo = 0;
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 
+hw_timer_t *timer = NULL;
+
+volatile bool has_expired = false;
+void IRAM_ATTR timerInterrupcion() {
+ has_expired = true;
+}
+
 void setup() {
   pinMode(BOTON_1, INPUT_PULLUP);
   pinMode(BOTON_2, INPUT_PULLUP);
@@ -45,6 +52,10 @@ void setup() {
   sensor_t sensor;
   dht.temperature().getSensor(&sensor);
   Serial.println("Pantalla 1");
+
+  timer = timerBegin(1000000); // 1 MHz = 1 tick = 1 microsegundo
+  timerAttachInterrupt(timer, &timerInterrupcion);
+  timerAlarm(timer, 1000000, true, 0); // 1 segundo, repetitivo
 }
 
 void loop() {
@@ -108,27 +119,28 @@ void loop() {
       break;
   }
 
-  if (millis() % 1000 == 0) {
-    segundo++;
+  if (has_expired){
+    segundo ++;
+    has_expired = false;
   }
-  if (segundo >= 60) {
-    segundo = 0;
+  if(segundo>=60){
     m++;
+    segundo = 0; 
   }
-  if (m >= 60) {
-    m = 0;
+  if(m>=60){
     h++;
+    m = 0;
   }
-  if (h >= 24) {
-    h = 0;
+  if(h>=24){
+    h=0;
   }
 }
 
 void imprimirHora(int hora, int minuto, int temperatura) {
   u8g2.clearBuffer();  // clear the internal memory
-  char shora[2];
-  char smin[2];
-  char stemp[2];
+  char shora[3];
+  char smin[3];
+  char stemp[4];
 
   u8g2.setFont(u8g2_font_6x10_tr);
 
