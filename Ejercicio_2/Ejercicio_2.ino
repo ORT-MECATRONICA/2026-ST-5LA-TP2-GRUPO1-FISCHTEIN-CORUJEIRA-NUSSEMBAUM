@@ -41,7 +41,7 @@ void setup() {
   }
   Serial.println("\nWiFi Connected");
 
-  configTime(0, 0, "pool.ntp.org");
+  configTime(gmt, 0, "pool.ntp.org");
 
   // 3. Wait for time to sync and set it to the RTC
   struct tm timeinfo;
@@ -68,7 +68,8 @@ void setup() {
 void loop() {
   sensors_event_t event;
   dht.temperature().getEvent(&event);
-  int h = (rtc.getHour("%H") + gmt) % 24;
+  configTime(gmt,0,"pool.ntp.org");
+  int h = rtc.getHour("%H") ;
   imprimirHora(h, event.temperature);
   switch (estado) {
     case PANTALLA_1:
