@@ -49,8 +49,8 @@ void setup() {
     rtc.setTimeStruct(timeinfo);  // Set the internal RTC with the NTP time
   }
 
-  pinMode(BOTON_1, INPUT_PULLUP);
-  pinMode(BOTON_2, INPUT_PULLUP);
+  pinMode(BOTON_1, INPUT);
+  pinMode(BOTON_2, INPUT);
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);
   Serial.println(F("OLED test"));
